@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 var (
@@ -28,8 +30,9 @@ func argsPass() {
 }
 
 func genPassWord() string {
-	//r:=rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	sourceStr := ""
+	passStr := make([]byte, 0, length)
 	if ty == "num" {
 		sourceStr = nums
 	} else if ty == "char" {
@@ -41,7 +44,10 @@ func genPassWord() string {
 	} else {
 		sourceStr = nums
 	}
-	return sourceStr
+	for i := 0; i < length; i++ {
+		passStr = append(passStr, sourceStr[r.Intn(len(sourceStr))])
+	}
+	return string(passStr)
 }
 
 func main() {
