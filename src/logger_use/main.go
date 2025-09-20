@@ -31,9 +31,9 @@ func initLog() {
 	config := map[string]string{
 		"log_path":  "/Users/wallace/GolandProjects/go_base/src/logger_use/logs",
 		"log_name":  "logger_use",
-		"log_level": "warn",
+		"log_level": "debug",
 	}
-	err := logger.InitLogger("file", config)
+	err := logger.InitLogger("console", config)
 	if err != nil {
 		panic("fail to init logger")
 	}
@@ -46,6 +46,7 @@ func initLog() {
 //			time.Sleep(1 * time.Second)
 //		}
 //	}
+
 func main() {
 	initLog()
 	//Run()

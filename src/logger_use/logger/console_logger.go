@@ -8,9 +8,10 @@ import (
 )
 
 type ConsoleLogger struct {
-	LogLevel int
-	File     *os.File
-	WFile    *os.File
+	LogLevel    int
+	File        *os.File
+	WFile       *os.File
+	LogDataChan chan *LogData
 }
 
 func (cl *ConsoleLogger) Write(file *os.File, level int, format string, args ...interface{}) {
@@ -24,7 +25,17 @@ func (cl *ConsoleLogger) Write(file *os.File, level int, format string, args ...
 	funname = path.Base(funname)
 	leveltest := GetLevelText(level)
 	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintf(file, "%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+	//fmt.Fprintf(file, "%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+
+	logstr := fmt.Sprintf("%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+	ld := &LogData{
+		file:   file,
+		string: logstr,
+	}
+	select {
+	case cl.LogDataChan <- ld:
+	default:
+	}
 }
 
 func (cl *ConsoleLogger) Debug(format string, args ...interface{}) {
@@ -53,11 +64,21 @@ func (cl *ConsoleLogger) Close() {
 	cl.WFile.Close()
 
 }
+func (cl *ConsoleLogger) writeLogBackGroud() {
+	for ld := range cl.LogDataChan {
+		// 模拟写入卡顿
+		time.Sleep(10 * time.Second)
+		_, err := fmt.Fprintf(ld.file, "%s", ld.string)
+		if err != nil {
+			fmt.Printf("writeLogBackGroud 写日志失败%v\n", err)
+		}
+	}
+}
 
 func (cl *ConsoleLogger) Init() {
 	cl.File = os.Stdout
 	cl.WFile = os.Stderr
-
+	go cl.writeLogBackGroud()
 }
 func (cl *ConsoleLogger) setLevel(level int) {
 	if level < cl.LogLevel {
@@ -69,8 +90,17 @@ func (cl *ConsoleLogger) setLevel(level int) {
 	}
 }
 
-func NewConsoleLogger(map[string]string) (log LoggerInterface, err error) {
-	log = &ConsoleLogger{}
+func NewConsoleLogger(config map[string]string) (log LoggerInterface, err error) {
+
+	logLevel, ok := config["log_level"]
+	if !ok {
+		logLevel = "info"
+	}
+	logint := GetLevelInt(logLevel)
+	log = &ConsoleLogger{
+		LogLevel:    logint,
+		LogDataChan: make(chan *LogData, 5000),
+	}
 	log.Init()
 	return log, nil
 }

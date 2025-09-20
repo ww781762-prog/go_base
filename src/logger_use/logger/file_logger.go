@@ -8,11 +8,12 @@ import (
 )
 
 type FileLogger struct {
-	LogPath  string
-	LogLevel int
-	LogName  string
-	File     *os.File
-	WFile    *os.File
+	LogPath     string
+	LogLevel    int
+	LogName     string
+	File        *os.File
+	WFile       *os.File
+	LogDataChan chan *LogData
 }
 
 func (fl *FileLogger) Write(file *os.File, level int, format string, args ...interface{}) {
@@ -29,7 +30,27 @@ func (fl *FileLogger) Write(file *os.File, level int, format string, args ...int
 	leveltest := GetLevelText(level)
 	msg := fmt.Sprintf(format, args...)
 	// 如果我们直接写日志到文件会出现的问题，如果磁盘有问题会导致整个业务流程有问题，所以我们需要异步去写日志。
-	fmt.Fprintf(file, "%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+	//fmt.Fprintf(file, "%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+	// 并发写
+	logstr := fmt.Sprintf("%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
+	ld := &LogData{
+		file:   file,
+		string: logstr,
+	}
+	select {
+	case fl.LogDataChan <- ld:
+	default:
+	}
+
+}
+
+func (fl *FileLogger) writeLogBackGroud() {
+	for ld := range fl.LogDataChan {
+		_, err := fmt.Fprintf(ld.file, "%s", ld.string)
+		if err != nil {
+			fmt.Printf("writeLogBackGroud 写日志失败%v\n", err)
+		}
+	}
 }
 
 func (fl *FileLogger) Debug(format string, args ...interface{}) {
@@ -72,7 +93,7 @@ func (fl *FileLogger) Init() {
 	}
 	fl.File = file
 	fl.WFile = wfile
-
+	go fl.writeLogBackGroud()
 }
 func (fl *FileLogger) setLevel(level int) {
 	if level < fl.LogLevel {
@@ -111,9 +132,10 @@ func NewFileLogger(config map[string]string) (log LoggerInterface, err error) {
 	}
 	logint := GetLevelInt(logLevel)
 	log = &FileLogger{
-		LogPath:  LogPath,
-		LogName:  logName,
-		LogLevel: logint,
+		LogPath:     LogPath,
+		LogName:     logName,
+		LogLevel:    logint,
+		LogDataChan: make(chan *LogData, 5000),
 	}
 	log.Init()
 	return log, nil

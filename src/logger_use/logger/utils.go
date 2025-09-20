@@ -1,6 +1,14 @@
 package logger
 
-import "runtime"
+import (
+	"os"
+	"runtime"
+)
+
+type LogData struct {
+	file   *os.File
+	string string
+}
 
 func GetLineInfo() (fileName string, funcName string, lineNo int) {
 	pc, file, line, ok := runtime.Caller(3)
