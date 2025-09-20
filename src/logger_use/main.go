@@ -33,7 +33,7 @@ func initLog() {
 		"log_name":  "logger_use",
 		"log_level": "debug",
 	}
-	err := logger.InitLogger("console", config)
+	err := logger.InitLogger("file", config)
 	if err != nil {
 		panic("fail to init logger")
 	}

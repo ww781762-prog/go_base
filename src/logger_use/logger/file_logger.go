@@ -17,7 +17,7 @@ type FileLogger struct {
 }
 
 func (fl *FileLogger) Write(file *os.File, level int, format string, args ...interface{}) {
-	fmt.Println(level, fl.LogLevel)
+	//fmt.Println(level, fl.LogLevel)
 
 	if level > fl.LogLevel {
 		return
@@ -32,6 +32,11 @@ func (fl *FileLogger) Write(file *os.File, level int, format string, args ...int
 	// 如果我们直接写日志到文件会出现的问题，如果磁盘有问题会导致整个业务流程有问题，所以我们需要异步去写日志。
 	//fmt.Fprintf(file, "%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
 	// 并发写
+	fileinfo, err := file.Stat()
+	if err != nil {
+		fmt.Printf("fail to get file info,err:%v\n", err)
+	}
+	fmt.Println(fileinfo.Size())
 	logstr := fmt.Sprintf("%s [%s] %s %s:%d %s\n", nowStr, leveltest, filename, funname, lineon, msg)
 	ld := &LogData{
 		file:   file,
