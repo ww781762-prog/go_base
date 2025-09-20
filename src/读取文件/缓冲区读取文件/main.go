@@ -9,7 +9,7 @@ import (
 
 func main1() {
 
-	ifile, err := os.Open("main.go")
+	ifile, err := os.Open("fileLog.go")
 	if err != nil {
 		fmt.Println("open file %s err", err)
 		return
@@ -28,7 +28,7 @@ func main1() {
 
 func main() {
 
-	ifile, err := os.ReadFile("/Users/wallace/GolandProjects/go_base/src/读取文件/缓冲区读取文件/main.go")
+	ifile, err := os.ReadFile("/Users/wallace/GolandProjects/go_base/src/读取文件/缓冲区读取文件/fileLog.go")
 	if err != nil {
 		fmt.Println("读取文件失败", err)
 	}
