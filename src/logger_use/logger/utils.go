@@ -6,8 +6,9 @@ import (
 )
 
 type LogData struct {
-	file   *os.File
-	string string
+	file     *os.File
+	string   string
+	isErrLog bool
 }
 
 func GetLineInfo() (fileName string, funcName string, lineNo int) {

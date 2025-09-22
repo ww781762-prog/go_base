@@ -29,9 +29,11 @@ import (
 // 封装后的日志库，全局变量封装到了 logger 包里面，初始化后，直接使用就可以了
 func initLog() {
 	config := map[string]string{
-		"log_path":  "/Users/wallace/GolandProjects/go_base/src/logger_use/logs",
-		"log_name":  "logger_use",
-		"log_level": "debug",
+		"log_path":   "/Users/wallace/GolandProjects/go_base/src/logger_use/logs",
+		"log_name":   "logger_use",
+		"log_level":  "debug",
+		"split_type": "size",
+		"split_size": "100",
 	}
 	err := logger.InitLogger("file", config)
 	if err != nil {
