@@ -26,17 +26,39 @@ type MysqlConfig struct {
 }
 
 func TestMarshal(t *testing.T) {
-	config := &Config{}
+	config := Config{}
 
 	fData, err := os.ReadFile("/Users/wallace/GolandProjects/go_base/src/initconfig/config.ini")
 	if err != nil {
 		fmt.Println("读取文件失败,", err)
 	}
 
-	err = UnMarshal(fData, config)
+	err = UnMarshal(fData, &config)
 	if err != nil {
 		fmt.Println("解析配置出错", err)
 		return
 	}
-	fmt.Printf("%#v", config)
+	fmt.Printf("%#v\n", config)
+
+	buf, err := Marshal(config)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(buf))
+}
+
+func TestMarshalFile(t *testing.T) {
+	config := Config{}
+	fileName := "/Users/wallace/GolandProjects/go_base/src/initconfig/config.ini"
+	err := UnMarshalFromFile(fileName, &config)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("%#v\n", config)
+	fileName2 := "/Users/wallace/GolandProjects/go_base/src/initconfig/config.ini_2"
+	err = MarshalToFile(fileName2, config)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

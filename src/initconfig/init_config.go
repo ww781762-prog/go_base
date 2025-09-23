@@ -3,11 +3,20 @@ package initconfig
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
+func UnMarshalFromFile(fileName string, result interface{}) (err error) {
+	fData, err := os.ReadFile(fileName)
+	if err != nil {
+		fmt.Println("读取文件失败,", err)
+	}
+	err = UnMarshal(fData, result)
+	return
+}
 func UnMarshal(fData []byte, sData interface{}) (err error) {
 	if len(fData) == 0 {
 		err = errors.New("配置文件为空")
@@ -162,6 +171,43 @@ func PassConfigItem(lineData string, sDta interface{}, selectName string) (key s
 	return
 }
 
-func Marshal() {
+func MarshalToFile(fileName string, conf interface{}) (err error) {
+	var buf []byte
+	buf, err = Marshal(conf)
+	if err != nil {
+		return
+	}
+	err = os.WriteFile(fileName, buf, os.ModePerm)
+	return
+}
+func Marshal(conf interface{}) (buf []byte, err error) {
 
+	if reflect.TypeOf(conf).Kind() != reflect.Struct {
+		err = errors.New("需要传入结构体")
+		return
+	}
+	for i := 0; i < reflect.TypeOf(conf).NumField(); i++ {
+		if reflect.TypeOf(conf).Field(i).Type.Kind() != reflect.Struct {
+			err = errors.New("需要传入结构体的里面的字段只能是结构体")
+			return
+		}
+	}
+	var rest []string = []string{}
+	for i := 0; i < reflect.TypeOf(conf).NumField(); i++ {
+		//fmt.Print(reflect.TypeOf(conf).Field(i))
+		if reflect.TypeOf(conf).Field(i).Tag.Get("ini") == "" {
+			continue
+		}
+		rest = append(rest, fmt.Sprintf("\n[%s]\n", reflect.TypeOf(conf).Field(i).Tag.Get("ini")))
+		for j := 0; j < reflect.TypeOf(conf).Field(i).Type.NumField(); j++ {
+			if reflect.TypeOf(conf).Field(i).Type.Field(j).Tag.Get("ini") == "" {
+				continue
+			}
+			rest = append(rest, fmt.Sprintf("%s = %v\n", reflect.TypeOf(conf).Field(i).Type.Field(j).Tag.Get("ini"), reflect.ValueOf(conf).Field(i).Field(j).Interface()))
+		}
+	}
+	for line := range rest {
+		buf = append(buf, []byte(rest[line])...)
+	}
+	return
 }
