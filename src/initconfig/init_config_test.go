@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	ServerConfig
-	MysqlConfig
+	ServerConfig `ini:"server"`
+	MysqlConfig  `ini:"mysql"`
 }
 
 type ServerConfig struct {
@@ -22,7 +22,7 @@ type MysqlConfig struct {
 	Database string  `ini:"database"`
 	Host     string  `ini:"host"`
 	Port     int     `ini:"port"`
-	Timeout  float32 `ini:"timezone"`
+	Timeout  float32 `ini:"timeout"`
 }
 
 func TestMarshal(t *testing.T) {
@@ -36,5 +36,7 @@ func TestMarshal(t *testing.T) {
 	err = UnMarshal(fData, config)
 	if err != nil {
 		fmt.Println("解析配置出错", err)
+		return
 	}
+	fmt.Printf("%#v", config)
 }

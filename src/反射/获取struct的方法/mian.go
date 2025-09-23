@@ -27,4 +27,6 @@ func main() {
 	d := m.Call(in)
 	// 返回值是一个包含Value的列表
 	fmt.Println(d[0])
+
+	fmt.Println(v.Type().Elem().Field(0).Tag.Get(""))
 }
